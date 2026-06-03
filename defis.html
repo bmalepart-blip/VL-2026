@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camp de Jour 2026 - Tableau des Défis</title>
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="manifest" href="manifest.json">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Camp 2026">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #111a2e;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        h1 { margin: 0; color: #00ffcc; text-transform: uppercase; font-size: 2rem; }
+        
+        .header-meta {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+        .theme-box { font-style: italic; color: #ffb703; }
+        .score-box {
+            font-weight: bold;
+            color: #00ffcc;
+            background: rgba(0, 255, 204, 0.1);
+            padding: 2px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 204, 0.3);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        @media(max-width: 768px) { .board { grid-template-columns: 1fr; } }
+        .column {
+            background: rgba(255, 255, 255, 0.01);
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .column h2 {
+            text-align: center;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #00ffcc;
+            text-transform: uppercase;
+        }
+        .column.hors-camp h2 { border-bottom-color: #ff3366; }
+        
+        .section-title {
+            font-size: 1.05rem;
+            margin: 25px 0 12px 0;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border-left: 4px solid #ffb703;
+            color: #ffb703;
+            border-radius: 0 4px 4px 0;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .column.hors-camp .section-title { border-left-color: #ff3366; color: #ff3366; }
+
+        .defi-card {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            border-left: 3px solid #00ffcc;
+        }
+        .defi-card.hors-camp-card { border-left-color: #ff3366; }
+        .defi-title { font-weight: bold; color: #fff; margin-bottom: 5px; font-size: 1.1rem; }
+        
+        .defi-badges {
+            float: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+        .defi-pts { background: #1c2a45; padding: 2px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; color: #00ffcc; border: 1px solid rgba(0, 255, 204, 0.2); }
+        .defi-card.hors-camp-card .defi-pts { color: #ff3366; border-color: rgba(255, 51, 102, 0.2); }
+        
+        .defi-jours-badge {
+            font-size: 0.75rem;
+            color: #ffb703;
+            background: rgba(255, 183, 3, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            border: 1px solid rgba(255, 183, 3, 0.2);
+        }
+        .defi-jours-badge.urgent {
+            color: #ff3366;
+            background: rgba(255, 51, 102, 0.1);
+            border-color: rgba(255, 51, 102, 0.2);
+        }
+
+        .defi-desc { color: #a0aec0; font-size: 0.95rem; margin-top: 5px; line-height: 1.4; margin-bottom: 15px; }
+        .empty-msg { font-style: italic; color: #4a5568; padding: 10px; }
+
+        /* --- ZONE TÉLÉVERSEMENT --- */
+        .upload-zone {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .btn-upload {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            transition: background 0.2s;
+        }
+        .btn-upload:hover { background: #059669; }
+        .file-input { display: none; }
+        .status-msg { font-size: 0.8rem; margin-left: 8px; color: #a0aec0; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1 id="nomCamp">Chargement...</h1>
+    <div class="header-meta">
+        <div id="nomTheme" class="theme-box">Thème : Chargement...</div>
+        <div class="score-box">🏆 Score : <span id="scoreActuel">0</span> pts</div>
+    </div>
+</div>
+
+<div class="board">
+    <div class="column au-camp">
+        <h2>🎪 AU CAMP</h2>
+        <div class="section-title">📅 Défis Hebdo</div>
+        <div id="auCampHebdo"></div>
+        <div class="section-title">☀️ Défis de l'Été</div>
+        <div id="auCampEte"></div>
+    </div>
+    
+    <div class="column hors-camp">
+        <h2>🌲 HORS CAMP</h2>
+        <div class="section-title">📅 Défis Hebdo</div>
+        <div id="horsCampHebdo"></div>
+        <div class="section-title">☀️ Défis de l'Été</div>
+        <div id="horsCampEte"></div>
+    </div>
+</div>
+
+<script>
+    const monClientSupabaseDefis = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function initialiserPage() {
+        let codeSaisi = sessionStorage.getItem('camp_code_saisi');
+
+        if (!codeSaisi) {
+            codeSaisi = prompt("Veuillez entrer le code de votre équipe :");
+            if (!codeSaisi) {
+                alert("Code requis pour accéder au jeu.");
+                window.location.href = 'accueil.html';
+                return;
+            }
+            sessionStorage.setItem('camp_code_saisi', codeSaisi);
+        }
+
+        try {
+            // Recherche du camp via la colonne textuelle 'code_equipe'
+            const { data: camp, error: errorCamp } = await monClientSupabaseDefis
+                .from('camps')
+                .select('id, nom, theme_s1')
+                .eq('code_equipe', codeSaisi)
+                .single();
+
+            if (errorCamp || !camp) {
+                alert("Code équipe invalide !");
+                sessionStorage.removeItem('camp_code_saisi');
+                location.reload();
+                return;
+            }
+
+            // On stocke l'ID réel du camp pour les requêtes suivantes
+            const campId = camp.id;
+            sessionStorage.setItem('camp_id_connecte', campId);
+
+            document.getElementById('nomCamp').textContent = camp.nom;
+            document.getElementById('nomTheme').textContent = "Thème : " + (camp.theme_s1 || "Aucun");
+
+            const { data: toutesReussites, error: errorReussites } = await monClientSupabaseDefis
+                .from('reussites')
+                .select('defi_id, valide, commentaire')
+                .eq('camp_id', campId);
+
+            if (errorReussites) throw errorReussites;
+
+            const listeIdsReussis = toutesReussites ? toutesReussites.filter(r => r.valide === true).map(r => r.defi_id) : [];
+
+            const { data: tousLesDefis } = await monClientSupabaseDefis
+                .from('defis')
+                .select('id, points');
+
+            let scoreTotal = 0;
+            if (tousLesDefis) {
+                tousLesDefis.forEach(d => {
+                    if (listeIdsReussis.includes(d.id)) {
+                        scoreTotal += (d.points || 0);
+                    }
+                });
+            }
+            document.getElementById('scoreActuel').textContent = scoreTotal;
+
+            const aujourdHuiStr = new Date().toISOString().split('T')[0];
+            const aujourdHui = new Date(aujourdHuiStr);
+
+            const { data: defis, error: errorDefis } = await monClientSupabaseDefis
+                .from('defis')
+                .select('id, nom, points, description, zone, type_defi, date_debut, date_fin')
+                .lte('date_debut', aujourdHuiStr);
+
+            if (errorDefis) throw errorDefis;
+
+            const divAuCampHebdo = document.getElementById('auCampHebdo');
+            const divAuCampEte = document.getElementById('auCampEte');
+            const divHorsCampHebdo = document.getElementById('horsCampHebdo');
+            const divHorsCampEte = document.getElementById('horsCampEte');
+
+            divAuCampHebdo.innerHTML = ""; divAuCampEte.innerHTML = "";
+            divHorsCampHebdo.innerHTML = ""; divHorsCampEte.innerHTML = "";
+
+            let countAuHebdo = 0, countAuEte = 0, countHorsHebdo = 0, countHorsEte = 0;
+
+            if (defis && defis.length > 0) {
+                defis.forEach(defi => {
+                    if (defi.date_fin && defi.date_fin < aujourdHuiStr) return; 
+                    if (listeIdsReussis.includes(defi.id)) return;
+
+                    const card = document.createElement('div');
+                    const estHorsCamp = defi.zone && defi.zone.toLowerCase().includes('hors');
+                    card.className = 'defi-card' + (estHorsCamp ? ' hors-camp-card' : '');
+                    
+                    const tentativeRefusee = toutesReussites ? toutesReussites.find(r => r.defi_id === defi.id && r.valide === false) : null;
+                    let htmlRefus = tentativeRefusee ? `
+                        <div style="background: rgba(255, 51, 102, 0.15); padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ff3366; color: #ff3366; font-size: 0.9rem;">
+                            <strong>⚠️ Le défi est refusé :</strong><br><em>"${tentativeRefusee.commentaire || "Aucun commentaire précisé."}"</em>
+                        </div>` : "";
+                    
+                    let htmlJoursRestants = "";
+                    if (defi.date_fin) {
+                        const dateFinDefi = new Date(defi.date_fin);
+                        const diffJours = Math.ceil((dateFinDefi.getTime() - aujourdHui.getTime()) / (1000 * 60 * 60 * 24));
+                        if (diffJours > 1) htmlJoursRestants = `<span class="defi-jours-badge">⏱️ Reste ${diffJours} jours</span>`;
+                        else if (diffJours === 1) htmlJoursRestants = `<span class="defi-jours-badge urgent">⏱️ Reste 1 jour !</span>`;
+                        else htmlJoursRestants = `<span class="defi-jours-badge urgent">⏱️ Dernier jour !</span>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="defi-badges"><span class="defi-pts">${defi.points || 0} PTS</span>${htmlJoursRestants}</div>
+                        <div class="defi-title">${defi.nom || 'Sans nom'}</div>
+                        ${htmlRefus}
+                        <div class="defi-desc">${defi.description || ''}</div>
+                        <div class="upload-zone">
+                            <label class="btn-upload" for="file-${defi.id}">📷 ${tentativeRefusee ? 'Renvoyer une preuve' : 'Envoyer la preuve'}</label>
+                            <input type="file" id="file-${defi.id}" class="file-input" accept="image/*,video/*" onchange="televerserPreuve('${defi.id}', this)">
+                            <span id="status-${defi.id}" class="status-msg"></span>
+                        </div>
+                    `;
+
+                    const estHebdo = (defi.type_defi || '').toLowerCase().includes('hebdo');
+                    if (estHorsCamp) (estHebdo ? divHorsCampHebdo : divHorsCampEte).appendChild(card);
+                    else (estHebdo ? divAuCampHebdo : divAuCampEte).appendChild(card);
+                });
+            }
+        } catch (error) {
+            console.error("Erreur générale :", error.message);
+            document.getElementById('nomCamp').textContent = "Erreur de connexion";
+        }
+    }
+
+    async function televerserPreuve(defiId, inputElement) {
+        const fichier = inputElement.files[0];
+        if (!fichier) return;
+
+        const campId = sessionStorage.getItem('camp_id_connecte');
+        const statusSpan = document.getElementById(`status-${defiId}`);
+        statusSpan.textContent = "Envoi...";
+        statusSpan.style.color = "#ffb703";
+
+        try {
+            const extension = fichier.name.split('.').pop();
+            const nomFichierUnique = `camp_${campId}_defi_${defiId}_${Date.now()}.${extension}`;
+
+            const { error: storageError } = await monClientSupabaseDefis
+                .storage
+                .from('preuves')
+                .upload(nomFichierUnique, fichier);
+
+            if (storageError) throw storageError;
+
+            const { data: urlData } = monClientSupabaseDefis
+                .storage
+                .from('preuves')
+                .getPublicUrl(nomFichierUnique);
+
+            const { data: existing } = await monClientSupabaseDefis
+                .from('reussites')
+                .select('id')
+                .eq('camp_id', parseInt(campId, 10))
+                .eq('defi_id', parseInt(defiId, 10));
+
+            if (existing && existing.length > 0) {
+                await monClientSupabaseDefis
+                    .from('reussites')
+                    .update({ 
+                        url_preuve: urlData.publicUrl, 
+                        valide: null,          // <--- MODIFIÉ : Passe à null (en attente)
+                        commentaire: null      // <--- MODIFIÉ : Efface le message de refus
+                    })
+                    .eq('id', existing[0].id);
+            } else {
+                // ...
+                await monClientSupabaseDefis
+                    .from('reussites')
+                    .insert([
+                        { 
+                            camp_id: parseInt(campId, 10), 
+                            defi_id: parseInt(defiId, 10), 
+                            url_preuve: urlData.publicUrl,
+                            valide: null 
+                        }
+                    ]);
+            }
+
+            statusSpan.textContent = "Envoyé ! En attente de validation ⏳";
+            statusSpan.style.color = "#10b981";
+            
+            setTimeout(() => { initialiserPage(); }, 2000);
+
+        } catch (error) {
+            console.error("Erreur lors de l'envoi :", error.message);
+            statusSpan.textContent = "❌ Échec de l'envoi";
+            statusSpan.style.color = "#ff3366";
+        }
+    }
+
+    window.onload = initialiserPage;
+</script>
+</body>
+</html>
