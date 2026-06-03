@@ -124,7 +124,7 @@
 
     window.onload = chargerCamps;
 </script>
-<div style="text-align: center; margin-top: 50px; margin-bottom: 20px;">
+<div style="position: fixed; bottom: 20px; left: 0; right: 0; text-align: center; z-index: 999;">
     <img src="https://cdn-icons-png.flaticon.com/512/2904/2904975.png" 
          onclick="accesAdmin()" 
          style="width: 30px; height: 30px; cursor: pointer; opacity: 0.4;">
@@ -133,7 +133,7 @@
 <script>
     function accesAdmin() {
         const code = prompt("Code admin :");
-        if (code === "10424313") { // Remplace 1234 par ton mot de passe
+        if (code === "1234") { // Ton mot de passe
             window.location.href = "admin.html";
         } else {
             alert("Accès refusé");
