@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carnaval VL 2026</title>
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="manifest" href="manifest.json">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Camp 2026">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            text-align: center;
+            width: 350px;
+        }
+        h1 {
+            margin-bottom: 30px;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        select:focus {
+            border-color: #00ffcc;
+            background: rgba(0, 0, 0, 0.4);
+        }
+        select option {
+            background: #2a5298;
+            color: white;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: #00ffcc;
+            color: #1e3c72;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
+        }
+        button:hover {
+            background: #00eeaa;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 204, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Carnaval VL 🎪</h1>
+    <select id="selectCamps">
+        <option>Chargement des camps...</option>
+    </select>
+    <button onclick="seConnecter()">Entrer dans le camp</button>
+</div>
+
+<script>
+    // Connexion automatique avec les variables de config.js
+    const monClientSupabaseAccueil = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function chargerCamps() {
+        try {
+            const { data: camps, error } = await monClientSupabaseAccueil
+                .from('camps')
+                .select('id, nom');
+            
+            if (error) throw error;
+            
+            const select = document.getElementById('selectCamps');
+            select.innerHTML = "";
+            
+            camps.forEach(camp => {
+                const opt = document.createElement('option');
+                opt.value = camp.id;
+                opt.textContent = camp.nom;
+                select.appendChild(opt);
+            });
+        } catch (error) {
+            console.error("Erreur de chargement des camps :", error.message);
+        }
+    }
+
+    function seConnecter() {
+        const idSelectionne = document.getElementById('selectCamps').value;
+        sessionStorage.setItem('camp_id_connecte', idSelectionne);
+        window.location.href = 'defis.html';
+    }
+
+    window.onload = chargerCamps;
+</script>
+<div style="text-align: center; margin-top: 50px; margin-bottom: 20px;">
+    <img src="https://cdn-icons-png.flaticon.com/512/2904/2904975.png" 
+         onclick="accesAdmin()" 
+         style="width: 30px; height: 30px; cursor: pointer; opacity: 0.4;">
+</div>
+
+<script>
+    function accesAdmin() {
+        const code = prompt("Code admin :");
+        if (code === "10424313") { // Remplace 1234 par ton mot de passe
+            window.location.href = "admin.html";
+        } else {
+            alert("Accès refusé");
+        }
+    }
+</script>
+</body>
+</html>
