@@ -301,6 +301,9 @@
                             <input type="file" id="file-${defi.id}" class="file-input" accept="image/*,video/*" onchange="televerserPreuve('${defi.id}', this)">
                             <span id="status-${defi.id}" class="status-msg"></span>
                         </div>
+                        <div style="font-size: 0.85rem; color: #ffb703; margin-top: 5px;">
+    👥 Quotas : ${defi.quota_petit || 0} (Petit) / ${defi.quota_grand || 0} (Grand)
+</div>
                     `;
 
                     const estHebdo = (defi.type_defi || '').toLowerCase().includes('hebdo');
