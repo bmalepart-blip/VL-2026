@@ -301,11 +301,17 @@
                             <input type="file" id="file-${defi.id}" class="file-input" accept="image/*,video/*" onchange="televerserPreuve('${defi.id}', this)">
                             <span id="status-${defi.id}" class="status-msg"></span>
                         </div>
-                      <div style="font-size: 0.85rem; color: #ffb703; margin-top: 5px;">
-    👥 Quotas : 
-    ${(typeof defi.quota_petit === 'number' && defi.quota_petit > 0) ? defi.quota_petit + ' (Petit)' : ''} 
-    ${(typeof defi.quota_petit === 'number' && defi.quota_petit > 0 && typeof defi.quota_grand === 'number' && defi.quota_grand > 0) ? '/ ' : ''}
-    ${(typeof defi.quota_grand === 'number' && defi.quota_grand > 0) ? defi.quota_grand + ' (Grand)' : ''}
+                        <script>
+function formaterQuota(petit, grand) {
+    let resultat = "";
+    if (petit > 0) resultat += petit + " (Petit)";
+    if (petit > 0 && grand > 0) resultat += " / ";
+    if (grand > 0) resultat += grand + " (Grand)";
+    return resultat;
+}
+</script>
+                     <div style="font-size: 0.85rem; color: #ffb703; margin-top: 5px;">
+    👥 Quotas : ${formaterQuota(defi.quota_petit, defi.quota_grand)}
 </div>
                     `;
 
