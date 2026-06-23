@@ -301,8 +301,10 @@
                             <input type="file" id="file-${defi.id}" class="file-input" accept="image/*,video/*" onchange="televerserPreuve('${defi.id}', this)">
                             <span id="status-${defi.id}" class="status-msg"></span>
                         </div>
-                        <div style="font-size: 0.85rem; color: #ffb703; margin-top: 5px;">
-    👥 Quotas : ${defi.quota_petit || 0} (Petit) / ${defi.quota_grand || 0} (Grand)
+                       <div style="font-size: 0.85rem; color: #ffb703; margin-top: 5px;">
+    👥 Quotas : ${defi.quota_petit ? defi.quota_petit + ' (Petit)' : ''} 
+    ${(defi.quota_petit && defi.quota_grand) ? '/ ' : ''}
+    ${defi.quota_grand ? defi.quota_grand + ' (Grand)' : ''}
 </div>
                     `;
 
