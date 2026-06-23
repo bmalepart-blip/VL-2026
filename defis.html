@@ -245,7 +245,8 @@
 
             const { data: defis, error: errorDefis } = await monClientSupabaseDefis
                 .from('defis')
-                .select('id, nom, points, description, zone, type_defi, date_debut, date_fin, est_infini')
+                // Remplace le .select actuel par celui-ci :
+                .select('id, nom, points, description, zone, type_defi, date_debut, date_fin, est_infini, quota_grand, quota_petit')
                 .lte('date_debut', aujourdHuiStr);
 
             if (errorDefis) throw errorDefis;
